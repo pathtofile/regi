@@ -271,6 +271,7 @@ struct RegiApp: App {
     @State private var trustStore = TrustedHostStore()
     @State private var discovery = DeviceDiscovery()
     @State private var hostMenuModel = HostMenuModel()
+    @State private var mcpServer = MCPServerManager()
 
     var body: some Scene {
         // Root window: the saved-hosts list. `Window` (singular) —
@@ -286,7 +287,12 @@ struct RegiApp: App {
                 .environment(trustStore)
                 .environment(discovery)
                 .environment(hostMenuModel)
-                .onAppear { discovery.start() }
+                .environment(mcpServer)
+                .onAppear {
+                    discovery.start()
+                    mcpServer.configure(hostStore: hostStore, discovery: discovery)
+                    mcpServer.start()
+                }
         }
         .defaultSize(width: 520, height: 420)
         .commands { RegiCommands(hostMenuModel: hostMenuModel) }
