@@ -31,6 +31,7 @@ struct HostsView: View {
     @Environment(HostStore.self) private var store
     @Environment(DeviceDiscovery.self) private var discovery
     @Environment(HostMenuModel.self) private var hostMenuModel
+    @Environment(MCPServerManager.self) private var mcpServer
     @Environment(\.openWindow) private var openWindow
 
     @State private var selection: HostListEntry.ID?
@@ -242,11 +243,29 @@ struct HostsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    /// Bottom bar: just Add (on the right). Host management lives in the
-    /// row's right-click menu — Edit…/Delete for saved hosts, Save for
-    /// discovered — and ⌫ deletes the selected saved host.
+    /// Bottom bar: MCP server status on the left, Add button on the right.
     private var gutterBar: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(mcpServer.isRunning ? Color.green : Color.secondary)
+                .frame(width: 6, height: 6)
+            Text(mcpServer.isRunning
+                ? "MCP :\(mcpServer.port) · \(mcpServer.connectedClientCount) client\(mcpServer.connectedClientCount == 1 ? "" : "s")"
+                : "MCP off")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+            Button {
+                if mcpServer.isRunning {
+                    Task { await mcpServer.stop() }
+                } else {
+                    mcpServer.start()
+                }
+            } label: {
+                Image(systemName: mcpServer.isRunning ? "stop.fill" : "play.fill")
+            }
+            .buttonStyle(GutterButtonStyle())
+            .help(mcpServer.isRunning ? "Stop MCP server" : "Start MCP server")
             Spacer()
             Button { showingAdd = true } label: {
                 Image(systemName: "plus")

@@ -32,6 +32,12 @@
 		FF00000000000000000000FF /* KVMSessionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F600000000000000000000F6 /* KVMSessionWindow.swift */; };
 		DE00000000000000000000DE /* ClipboardSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD00000000000000000000CD /* ClipboardSyncManager.swift */; };
 		DF00000000000000000000DF /* NSPasteboardClipboardSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE00000000000000000000CE /* NSPasteboardClipboardSource.swift */; };
+		DEAD00000000000000000011 /* MCPKeyInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000001 /* MCPKeyInput.swift */; };
+		DEAD00000000000000000012 /* MCPFrameCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000002 /* MCPFrameCapture.swift */; };
+		DEAD00000000000000000013 /* MCPToolHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000003 /* MCPToolHandler.swift */; };
+		DEAD00000000000000000014 /* MCPSSESession.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000004 /* MCPSSESession.swift */; };
+		DEAD00000000000000000015 /* MCPHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000005 /* MCPHTTPServer.swift */; };
+		DEAD00000000000000000016 /* MCPServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000006 /* MCPServerManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +65,12 @@
 		F600000000000000000000F6 /* KVMSessionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVMSessionWindow.swift; sourceTree = "<group>"; };
 		CD00000000000000000000CD /* ClipboardSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSyncManager.swift; sourceTree = "<group>"; };
 		CE00000000000000000000CE /* NSPasteboardClipboardSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPasteboardClipboardSource.swift; sourceTree = "<group>"; };
+		DEAD00000000000000000001 /* MCPKeyInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPKeyInput.swift; sourceTree = "<group>"; };
+		DEAD00000000000000000002 /* MCPFrameCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPFrameCapture.swift; sourceTree = "<group>"; };
+		DEAD00000000000000000003 /* MCPToolHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPToolHandler.swift; sourceTree = "<group>"; };
+		DEAD00000000000000000004 /* MCPSSESession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPSSESession.swift; sourceTree = "<group>"; };
+		DEAD00000000000000000005 /* MCPHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPHTTPServer.swift; sourceTree = "<group>"; };
+		DEAD00000000000000000006 /* MCPServerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServerManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +94,19 @@
 				A400000000000000000000A4 /* Packages */,
 				A500000000000000000000A5 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		DEAD000000000000000000AC /* MCP */ = {
+			isa = PBXGroup;
+			children = (
+				DEAD00000000000000000001 /* MCPKeyInput.swift */,
+				DEAD00000000000000000002 /* MCPFrameCapture.swift */,
+				DEAD00000000000000000003 /* MCPToolHandler.swift */,
+				DEAD00000000000000000004 /* MCPSSESession.swift */,
+				DEAD00000000000000000005 /* MCPHTTPServer.swift */,
+				DEAD00000000000000000006 /* MCPServerManager.swift */,
+			);
+			path = MCP;
 			sourceTree = "<group>";
 		};
 		A300000000000000000000A3 /* App */ = {
@@ -109,6 +134,7 @@
 				C900000000000000000000C9 /* StatsPanel.swift */,
 				CD00000000000000000000CD /* ClipboardSyncManager.swift */,
 				CE00000000000000000000CE /* NSPasteboardClipboardSource.swift */,
+				DEAD000000000000000000AC /* MCP */,
 				C200000000000000000000C2 /* Info.plist */,
 			);
 			path = App;
@@ -230,6 +256,12 @@
 				DA00000000000000000000DA /* StatsPanel.swift in Sources */,
 				DE00000000000000000000DE /* ClipboardSyncManager.swift in Sources */,
 				DF00000000000000000000DF /* NSPasteboardClipboardSource.swift in Sources */,
+				DEAD00000000000000000011 /* MCPKeyInput.swift in Sources */,
+				DEAD00000000000000000012 /* MCPFrameCapture.swift in Sources */,
+				DEAD00000000000000000013 /* MCPToolHandler.swift in Sources */,
+				DEAD00000000000000000014 /* MCPSSESession.swift in Sources */,
+				DEAD00000000000000000015 /* MCPHTTPServer.swift in Sources */,
+				DEAD00000000000000000016 /* MCPServerManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
