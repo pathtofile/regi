@@ -38,6 +38,7 @@
 		DEAD00000000000000000014 /* MCPSSESession.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000004 /* MCPSSESession.swift */; };
 		DEAD00000000000000000015 /* MCPHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000005 /* MCPHTTPServer.swift */; };
 		DEAD00000000000000000016 /* MCPServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000006 /* MCPServerManager.swift */; };
+		DEAD00000000000000000017 /* SessionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD00000000000000000007 /* SessionRegistry.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +72,7 @@
 		DEAD00000000000000000004 /* MCPSSESession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPSSESession.swift; sourceTree = "<group>"; };
 		DEAD00000000000000000005 /* MCPHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPHTTPServer.swift; sourceTree = "<group>"; };
 		DEAD00000000000000000006 /* MCPServerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServerManager.swift; sourceTree = "<group>"; };
+		DEAD00000000000000000007 /* SessionRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRegistry.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +107,7 @@
 				DEAD00000000000000000004 /* MCPSSESession.swift */,
 				DEAD00000000000000000005 /* MCPHTTPServer.swift */,
 				DEAD00000000000000000006 /* MCPServerManager.swift */,
+				DEAD00000000000000000007 /* SessionRegistry.swift */,
 			);
 			path = MCP;
 			sourceTree = "<group>";
@@ -262,6 +265,7 @@
 				DEAD00000000000000000014 /* MCPSSESession.swift in Sources */,
 				DEAD00000000000000000015 /* MCPHTTPServer.swift in Sources */,
 				DEAD00000000000000000016 /* MCPServerManager.swift in Sources */,
+				DEAD00000000000000000017 /* SessionRegistry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -32,6 +32,7 @@ struct KVMSessionWindow: View {
     private static let pauseDebounce: Duration = .seconds(5)
     @Environment(\.dismissWindow) private var dismissWindow
     @Environment(TrustedHostStore.self) private var trustStore
+    @Environment(SessionRegistry.self) private var registry
 
     var body: some View {
         // VStack(ZStack(KVM + overlay), StatusStrip): the StatusStrip
@@ -75,6 +76,9 @@ struct KVMSessionWindow: View {
                     initialEnabled: clipboardSyncEnabled
                 )
             }
+            // Publish this window's session so the MCP server drives it
+            // rather than opening a second (mutually-kicking) connection.
+            registry.register(id: sessionID, session: session)
             await connect()
         }
         .onChange(of: clipboardSyncEnabled) { _, newValue in
@@ -84,6 +88,10 @@ struct KVMSessionWindow: View {
             clipboardSync?.sessionStateChanged()
         }
         .onDisappear {
+            // Stop the MCP server pointing at a session that's about to
+            // tear down. Order matters: drop the registry entry before
+            // the async disconnect so no tool call races onto it.
+            registry.unregister(id: sessionID)
             // Session.disconnect is async; fire-and-forget so the
             // window-close path stays synchronous. The session reaches
             // .idle and gets deallocated when this view's @State drops.
@@ -121,6 +129,14 @@ struct KVMSessionWindow: View {
             isFullscreen = false
             FullscreenPresentationCounter.shared.exit()
             win.toolbar?.isVisible = true
+        }
+        // Frontmost window becomes the MCP target so "connect to the
+        // host I'm looking at" and ambiguous tool calls resolve to it.
+        .onReceive(NotificationCenter.default.publisher(
+            for: NSWindow.didBecomeKeyNotification)
+        ) { note in
+            guard let win = note.object as? NSWindow, win === ownWindow else { return }
+            registry.setActive(sessionID)
         }
         // Bandwidth gate: pause the encoder feed when the window is
         // minimized or fully occluded by other windows; resume the
@@ -233,10 +249,21 @@ struct KVMSessionWindow: View {
             // Schedule pause after the debounce window. Replace any
             // pending one so the timer restarts on each event.
             pauseTask?.cancel()
+            // ...unless the LLM is driving this session: it relies on
+            // screenshots, which go black if the encoder feed pauses
+            // while the user isn't looking at the window.
+            if registry.isMCPDriving(sessionID) {
+                pauseTask = nil
+                return
+            }
             let session = self.session
+            let registry = self.registry
+            let sessionID = self.sessionID
             pauseTask = Task { @MainActor in
                 try? await Task.sleep(for: Self.pauseDebounce)
                 if Task.isCancelled { return }
+                // Re-check: MCP may have bound during the debounce.
+                if registry.isMCPDriving(sessionID) { return }
                 session.pauseVideo()
             }
         }

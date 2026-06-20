@@ -6,9 +6,11 @@ import WebRTC
 
 private let log = Logger(subsystem: "app.regi.mac", category: "mcp-server")
 
-/// Top-level MCP server owner. Holds the dedicated KVM session used by
-/// MCP clients (separate from any window sessions), the HTTP server, the
-/// frame capturer, and the tool handler.
+/// Top-level MCP server owner. Holds the HTTP server, the frame
+/// capturer, and the tool handler. MCP tools drive whichever GUI
+/// window's `Session` is active (via `SessionRegistry`) rather than a
+/// separate headless one — the JetKVM allows only one session per
+/// device, so the human and the LLM must share a single peer connection.
 ///
 /// Injected as an @Observable environment object from RegiApp so
 /// HostsView can show live status without knowing implementation details.
@@ -19,40 +21,50 @@ final class MCPServerManager {
     private(set) var connectedClientCount = 0
     let port: UInt16 = 8765
 
-    // Dedicated session for MCP — headless, no window attached
-    let session = Session()
     let frameCapture = MCPFrameCapture()
+
+    /// Set by HostsView once the SwiftUI `openWindow` action is in
+    /// scope. The `connect` tool calls this to open/raise the window the
+    /// user watches. Read lazily at call time so it doesn't matter
+    /// whether this or `start()` ran first.
+    var openSessionWindow: ((KVMSessionWindowID) -> Void)?
 
     private var httpServer: MCPHTTPServer?
     private var toolHandler: MCPToolHandler?
     private var trackObserverTask: Task<Void, Never>?
+    /// The video track the frame capturer is currently attached to, so
+    /// `stop()` can detach cleanly.
+    private var attachedTrack: RTCVideoTrack?
 
     // Populated by configure() once SwiftUI environment objects exist
     private weak var hostStore: HostStore?
     private weak var discovery: DeviceDiscovery?
+    private weak var registry: SessionRegistry?
 
     // MARK: - Setup
 
     /// Wire up the environment objects. Call before `start()`.
-    func configure(hostStore: HostStore, discovery: DeviceDiscovery) {
+    func configure(hostStore: HostStore, discovery: DeviceDiscovery, registry: SessionRegistry) {
         self.hostStore = hostStore
         self.discovery = discovery
+        self.registry = registry
     }
 
     // MARK: - Lifecycle
 
     func start() {
         guard !isRunning else { return }
-        guard let hostStore, let discovery else {
+        guard let hostStore, let discovery, let registry else {
             log.error("start() called before configure() — ignoring")
             return
         }
 
         let th = MCPToolHandler(
-            session: session,
+            registry: registry,
             frameCapture: frameCapture,
             hostStore: hostStore,
-            discovery: discovery
+            discovery: discovery,
+            openWindow: { [weak self] id in self?.openSessionWindow?(id) }
         )
         toolHandler = th
 
@@ -78,10 +90,14 @@ final class MCPServerManager {
         guard isRunning else { return }
         trackObserverTask?.cancel()
         trackObserverTask = nil
+        // Stop driving the user's window, but don't tear it down — the
+        // human keeps watching. Just detach our frame renderer.
+        if let track = attachedTrack { frameCapture.detach(from: track) }
+        attachedTrack = nil
+        registry?.setMCPActive(false)
         httpServer?.stop()
         httpServer = nil
         toolHandler = nil
-        await session.disconnect()
         isRunning = false
         connectedClientCount = 0
         log.info("MCP server stopped")
@@ -89,30 +105,37 @@ final class MCPServerManager {
 
     // MARK: - Video track observation
 
-    /// Attach/detach the frame capturer whenever the MCP session's video
-    /// track changes. Uses withObservationTracking to re-register on each
-    /// change, forming a lightweight reactive loop.
+    /// Attach/detach the frame capturer whenever the *active window's*
+    /// video track changes — when the user switches which session is
+    /// frontmost, or when a track comes/goes. Uses withObservationTracking
+    /// to re-register on each change, forming a lightweight reactive loop.
+    ///
+    /// The capturer is a SECOND renderer on the same RTCVideoTrack the
+    /// GUI already renders, so the LLM's screenshots are the exact frames
+    /// the human sees.
     private func startTrackObserver() {
         trackObserverTask?.cancel()
         trackObserverTask = Task { [weak self] in
-            await self?.observeVideoTrack(previous: nil)
+            await self?.observeVideoTrack()
         }
     }
 
-    private func observeVideoTrack(previous: RTCVideoTrack?) async {
+    private func observeVideoTrack() async {
         guard !Task.isCancelled else { return }
         var currentTrack: RTCVideoTrack?
         withObservationTracking {
-            currentTrack = session.videoTrack
+            // Tracks both registry.activeID and that session's videoTrack.
+            currentTrack = registry?.targetSession?.videoTrack
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
-                await self?.observeVideoTrack(previous: currentTrack)
+                await self?.observeVideoTrack()
             }
         }
-        // Sync frame capturer if the track changed
-        if currentTrack !== previous {
-            if let old = previous { frameCapture.detach(from: old) }
+        // Sync frame capturer if the track changed.
+        if currentTrack !== attachedTrack {
+            if let old = attachedTrack { frameCapture.detach(from: old) }
             if let new = currentTrack { frameCapture.attach(to: new) }
+            attachedTrack = currentTrack
         }
     }
 }

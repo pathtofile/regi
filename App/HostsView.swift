@@ -110,6 +110,12 @@ struct HostsView: View {
         }
         .frame(minWidth: 480, minHeight: 360)
         .navigationTitle("Hosts")
+        // Give the MCP server a way to open the window the user watches.
+        // `openWindow` is only reachable from a View's environment, so we
+        // hand it across here as a closure.
+        .onAppear {
+            mcpServer.openSessionWindow = { id in openWindow(value: id) }
+        }
         // Mirror the selection into the shared model so the File menu can
         // enable/disable Connect (any host) and Edit/Delete (saved only).
         // See HostMenuModel.

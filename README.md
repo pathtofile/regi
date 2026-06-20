@@ -81,6 +81,37 @@ firmware updates, and (for PiKVM) ATX power and mass-storage controls
 are still done through the web UI. Regi assumes you've configured the
 device there at least once.
 
+## Controlling Regi with an LLM (MCP)
+
+Regi embeds an [MCP](https://modelcontextprotocol.io) server, so an LLM
+agent can drive a remote machine through it — take a screenshot, move
+the mouse, type, press shortcuts, and connect to hosts. The server runs
+*inside the app*: it starts automatically on launch and listens on
+`localhost:8765`. The hosts list shows its status (`MCP :8765 · N
+clients`) with a button to stop or restart it.
+
+Because the server lives in the app, **Regi must be running** before a
+client can connect. Connect [Claude
+Code](https://claude.com/claude-code) with:
+
+```sh
+claude mcp add --transport sse regi http://localhost:8765/sse
+```
+
+Then `claude mcp list` should report `regi` as connected. The server is
+bound to loopback only (not reachable from other machines) and exposes
+these tools:
+
+| Tool | What it does |
+|---|---|
+| `list_hosts` | List saved and mDNS-discovered KVM hosts |
+| `connect` / `disconnect` | Open or close a session (by saved-host name or raw address) |
+| `get_status` | Session state, video size, latency, FPS, codec |
+| `screenshot` | Capture the remote screen as a JPEG |
+| `mouse_move` / `mouse_click` / `mouse_scroll` | Pointer control (coords are 0.0–1.0 fractions) |
+| `key` | Press a key or combo (`ctrl+c`, `cmd+space`, `enter`, …) |
+| `type` | Type a string of text |
+
 ## Requirements
 
 - macOS 14 (Sonoma) or later

@@ -38,12 +38,8 @@ final class MCPFrameCapture: NSObject, RTCVideoRenderer {
 
     nonisolated func renderFrame(_ frame: RTCVideoFrame?) {
         guard let frame, let cvBuf = (frame.buffer as? RTCCVPixelBuffer)?.pixelBuffer else { return }
-        // Retain before the actor hop so the buffer outlives this callback.
-        CVPixelBufferRetain(cvBuf)
         Task { @MainActor [weak self] in
-            guard let self else { CVPixelBufferRelease(cvBuf); return }
-            if let old = self.latestPixelBuffer { CVPixelBufferRelease(old) }
-            self.latestPixelBuffer = cvBuf
+            self?.latestPixelBuffer = cvBuf
         }
     }
 

@@ -43,6 +43,18 @@ struct KVMSessionWindowID: Hashable, Codable {
         self.username = "admin"
     }
 
+    /// Build from a resolved endpoint plus a display name — used by the
+    /// MCP `connect` tool when it opens a window for a raw host address
+    /// that isn't a saved entry.
+    init(displayName: String, endpoint: DeviceEndpoint) {
+        self.displayName = displayName
+        self.host = endpoint.host
+        self.port = endpoint.port
+        self.useTLS = endpoint.useTLS
+        self.kind = endpoint.kind
+        self.username = endpoint.username ?? "admin"
+    }
+
     init(from decoder: Decoder) throws {
         throw DecodingError.dataCorrupted(.init(
             codingPath: decoder.codingPath,
@@ -271,6 +283,7 @@ struct RegiApp: App {
     @State private var trustStore = TrustedHostStore()
     @State private var discovery = DeviceDiscovery()
     @State private var hostMenuModel = HostMenuModel()
+    @State private var sessionRegistry = SessionRegistry()
     @State private var mcpServer = MCPServerManager()
 
     var body: some Scene {
@@ -287,10 +300,15 @@ struct RegiApp: App {
                 .environment(trustStore)
                 .environment(discovery)
                 .environment(hostMenuModel)
+                .environment(sessionRegistry)
                 .environment(mcpServer)
                 .onAppear {
                     discovery.start()
-                    mcpServer.configure(hostStore: hostStore, discovery: discovery)
+                    mcpServer.configure(
+                        hostStore: hostStore,
+                        discovery: discovery,
+                        registry: sessionRegistry
+                    )
                     mcpServer.start()
                 }
         }
@@ -311,6 +329,9 @@ struct RegiApp: App {
                     // applies to every future window for the same host
                     // (saved or mDNS-discovered).
                     .environment(trustStore)
+                    // Shared so the window can register its Session for
+                    // MCP to drive (one peer connection per device).
+                    .environment(sessionRegistry)
                     // 16:9 video at minWidth=800 wants ~525pt of
                     // video height (plus toolbar / status strip).
                     // The previous minHeight=600 floored the shrink-
